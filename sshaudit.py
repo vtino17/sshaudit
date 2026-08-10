@@ -198,13 +198,13 @@ def audit_keys_file(path: str) -> list[Finding]:
                 out.append(Finding("CRITICAL", where, f"DSA key (deprecated, disabled in OpenSSH) - {comment}"))
             elif keytype == "ssh-rsa":
                 try:
-                    blob = base64.b64decode(b64)
-                except Exception:
-                    out.append(Finding("LOW", where, "unparseable key blob"))
+                    blob = base64.b64decode(b64, validate=True)
+                except (ValueError, base64.binascii.Error):
+                    out.append(Finding("HIGH", where, "malformed RSA key blob; key cannot be authenticated"))
                     continue
                 bits = _rsa_bits(blob)
                 if bits is None:
-                    out.append(Finding("LOW", where, "RSA key, size undetermined"))
+                    out.append(Finding("HIGH", where, "malformed RSA key structure; key size cannot be verified"))
                 elif bits < 2048:
                     out.append(Finding("CRITICAL", where, f"RSA {bits}-bit key is far too small - {comment}"))
                 elif bits < 3072:

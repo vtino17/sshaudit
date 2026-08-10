@@ -66,6 +66,9 @@ fi
 # a DSA key line (static fixture; ssh-keygen may refuse to make DSA now)
 echo "ssh-dss AAAAB3NzaC1kc3MAAACBmock legacy@t" > "$T/dsa"
 assert "DSA key is critical" "CRITICAL" -- $SA keys --file "$T/dsa" --no-color
+printf 'ssh-rsa not-valid-base64 attacker\n' > "$T/malformed"
+assert "malformed RSA blob is high" "malformed RSA key blob" -- $SA keys --file "$T/malformed" --no-color
+assert_exit "malformed RSA blob exits non-zero" 1 -- $SA keys --file "$T/malformed" --no-color
 
 echo
 echo "== $pass passed, $fail failed =="
