@@ -123,6 +123,10 @@ def audit_sshd(path: str) -> list[Finding]:
     if val("x11forwarding", "no") == "yes":
         out.append(Finding("LOW", "X11Forwarding", "X11 forwarding enlarges the attack surface"))
 
+    # agent forwarding left on is a session-hijack risk on shared hosts
+    if val("allowagentforwarding", "yes") == "yes" and val("permitopen", "") == "":
+        out.append(Finding("LOW", "AllowAgentForwarding", "agent forwarding enabled; disable on jump hosts ('no')"))
+
     # weak crypto
     if "ciphers" in cfg:
         _check_weak_list(cfg["ciphers"], WEAK_CIPHERS, "Ciphers", out)
